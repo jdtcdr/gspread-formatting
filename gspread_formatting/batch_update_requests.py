@@ -14,7 +14,7 @@ __all__ = (
     'format_cell_ranges', 'format_cell_range', 'set_frozen', 'set_right_to_left',
     'set_data_validation_for_cell_range', 'set_data_validation_for_cell_ranges',
     'set_row_height', 'set_row_heights',
-    'set_column_width', 'set_column_widths'
+    'set_column_width', 'set_column_widths', 'auto_resize_column', 'auto_resize_columns'
 )
 
 
@@ -87,6 +87,36 @@ def set_column_width(worksheet, label, width):
 
     return set_column_widths(worksheet, [(label, width)])
 
+def auto_resize_columns(worksheet, ranges):
+    """ Update a column or range of columns in the given ``Worksheet``
+    to be automatically resized to content.
+    
+    :param worksheet: The ``Worksheet`` object.
+    :param ranges: An iterable of string column range values in A1 notation,
+    e.g. 'A:C',
+    """
+    for range in ranges:
+        print('range_to_dimensionrange:' + str(_range_to_dimensionrange_object(range, worksheet.id)))
+        
+    return [
+        {
+            'autoResizeDimensions': {
+                'dimensions': _range_to_dimensionrange_object(range, worksheet.id),
+            }
+            for range in ranges
+        }
+    ]
+
+def auto_resize_column(worksheet, range):
+    """ Update a column or range of columns in the given ``Worksheet``
+    to be automatically resized to content.
+    
+    :param worksheet: The ``Worksheet`` object.
+    :param range: string representing a single column or range of columns,
+    e.g. ``A`` or ``B:D``.
+    """
+
+    return auto_resize_columns(worksheet, [range])
       
 def format_cell_ranges(worksheet, ranges):
     """Update a list of Cell object ranges of :class:`Cell` objects

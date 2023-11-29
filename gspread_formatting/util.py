@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re 
+from math import log, floor
 
 def _build_repeat_cell_request(worksheet, range, cell_format, celldata_field='userEnteredFormat'):
     return {
@@ -21,6 +22,26 @@ def _fetch_with_updated_properties(spreadsheet, key, params=None):
 _MAGIC_NUMBER = 64
 _CELL_ADDR_RE = re.compile(r'([A-Za-z]+)?([1-9]\d*)?')
 
+def rowcol_to_a1(row, col):
+    row_label = str(row) if row else ''
+    column_label = ''
+    if col and col > 0:
+        digits = floor(log(col, 26)) + 1 if col > 0 else 0
+        remainder = col
+        for i in reversed(range(digits)):
+            divisor = 26 ** i
+            val = floor(remainder / divisor)
+            # account for 1-based numbering (A-Z), so not truly base 26
+            if i > 0 and (remainder - (val - 1) * divisor) <= sum(map(lambda x: 26 * 26**x, range(i))):
+                val -= 1
+            # for some values the highest-order digit of log() digits
+            # is not needed due to 1-based numbering so we
+            # omit that highest-order digit when it would be 0
+            if val > 0: 
+                column_label += chr(val + _MAGIC_NUMBER)
+            remainder -= val * divisor
+    return column_label + row_label
+
 def _a1_to_rowcol(label):
     if not label:
         raise ValueError(label)
@@ -38,6 +59,17 @@ def _a1_to_rowcol(label):
         return (row, col)
     raise ValueError(label)
 
+def _test_column_conversion(col):
+    if _a1_to_rowcol(rowcol_to_a1(None, col))[1] != col:
+        print('test failed for ' + str(col))
+        print('rowcol: ' + str(rowcol_to_a1(None, col)))
+        print('a1:' + str(_a1_to_rowcol(rowcol_to_a1(None, col))))
+
+def _test_all_column_conversions():
+    # Maximum number of columns in spreadsheet is 18,278
+    # per https://support.google.com/drive/answer/37603
+    for i in range(18278):
+        _test_column_conversion(i+1)
 
 def _range_to_dimensionrange_object(range, worksheet_id):
     gridrange = _range_to_gridrange_object(range, worksheet_id)
