@@ -95,9 +95,7 @@ def auto_resize_columns(worksheet, ranges):
     :param ranges: An iterable of string column range values in A1 notation,
     e.g. 'A:C',
     """
-    for range in ranges:
-        print('range_to_dimensionrange:' + str(_range_to_dimensionrange_object(range, worksheet.id)))
-        
+
     return [
         {
             'autoResizeDimensions': {
