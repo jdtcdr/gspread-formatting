@@ -17,7 +17,7 @@ from functools import wraps
 __all__ = (
     'get_default_format', 'get_effective_format', 'get_user_entered_format',
     'get_frozen_row_count', 'get_frozen_column_count', 'get_right_to_left',
-    'get_data_validation_rule',
+    'get_data_validation_rule', 'get_column_width',
 ) + gspread_formatting.batch_update_requests.__all__
 
 
@@ -118,6 +118,22 @@ def get_user_entered_format(worksheet, label):
     props = data.get('rowData', [{}])[0].get('values', [{}])[0].get('userEnteredFormat')
     return CellFormat.from_props(props) if props else None
 
+def get_column_width(worksheet, label):
+    """Returns the pixel width of a column
+
+    :param worksheet: Worksheet object containing the column whose width is desired.
+    :param col String with column label in common format, e.g. 'B:B'
+    """
+    label = '%s!%s' % (worksheet.title, label)
+
+    resp = worksheet.spreadsheet.fetch_sheet_metadata({
+        'includeGridData': True,
+        'ranges': [label],
+        'fields': 'sheets.data.columnMetadata.pixelSize'
+    })
+    data = resp['sheets'][0]['data'][0]
+    width = data.get('columnMetadata', [{}])[0].get('pixelSize')
+    return width
 
 def get_frozen_row_count(worksheet):
     md = worksheet.spreadsheet.fetch_sheet_metadata({'includeGridData': True})
